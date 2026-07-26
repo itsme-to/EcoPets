@@ -2,6 +2,9 @@ package com.willfp.ecopets.pets
 
 import com.willfp.eco.util.NumberUtils
 import com.willfp.eco.util.formatEco
+import com.willfp.ecopets.pets.entity.DEFAULT_PET_SCALE
+import com.willfp.ecopets.pets.entity.MAX_PET_SCALE
+import com.willfp.ecopets.pets.entity.MIN_PET_SCALE
 import com.willfp.ecopets.plugin
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -53,7 +56,9 @@ object PetDisplay : Listener {
             bobbingIntensity = plugin.configYml.getDoubleOrNull("pet-entity.bobbing-intensity") ?: 0.15,
             rotation = plugin.configYml.getBool("pet-entity.rotation"),
             rotationIntensity = plugin.configYml.getDoubleOrNull("pet-entity.rotation-intensity") ?: 20.0,
-            baseScale = configuredScale.takeIf { it in 0.0625..16.0 } ?: 1.0,
+            baseScale = configuredScale
+                .takeIf { it in MIN_PET_SCALE..MAX_PET_SCALE }
+                ?: DEFAULT_PET_SCALE,
             playfulAnimationsEnabled = plugin.configYml.getBool("$playfulAnimationPath.enabled"),
             playfulAnimationChance = (
                 plugin.configYml.getDoubleOrNull("$playfulAnimationPath.chance") ?: 25.0
@@ -239,6 +244,7 @@ object PetDisplay : Listener {
             transformation.translation.zero()
         }
         display.transformation = transformation
+        display.interpolationDelay = 0
         tracked.appliedScaleXZ = motion.scaleXZ
         tracked.appliedScaleY = motion.scaleY
         tracked.appliedPitch = motion.pitch
