@@ -1,6 +1,6 @@
 ---
 title: "Commands and Permissions"
-sidebar_position: 4
+sidebar_position: 3
 ---
 
 Every EcoPets command and permission node, for giving, resetting, importing, and managing pets. Admin commands sit under `/ecopets`; player-facing ones under `/pets`.
@@ -8,7 +8,7 @@ Every EcoPets command and permission node, for giving, resetting, importing, and
 | Command                                   | Description                                          | Permission                   |
 |-------------------------------------------|------------------------------------------------------|------------------------------|
 | `/ecopets give <player> <pet>`            | Give a pet                                           | `ecopets.command.give`       |
-| `/ecopets giveegg <player> <pet> [level] [xp]` | Give a pet egg, optionally at a level/xp        | `ecopets.command.give`       |
+| `/ecopets giveegg <player> <pet>`         | Give a pet egg                                       | `ecopets.command.give`       |
 | `/ecopets reset <player> <pet>`           | Reset a pet                                          | `ecopets.command.reset`      |
 | `/ecopets givexp <player> <pet> <amount>` | Give xp to a pet                                     | `ecopets.command.givexp`     |
 | `/pets`                                   | Open the pets menu                                   | `ecopets.command.pets`       |

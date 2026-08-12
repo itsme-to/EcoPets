@@ -24,20 +24,15 @@ dependencies {
     }
 }
 
-java {
-    withJavadocJar()
-}
-
 publishing {
     publications {
         // maven-private: only the shaded jar
         create<MavenPublication>("private") {
             artifactId = rootProject.name
         }
-        // maven-releases + GitHub: full set (none, all, sources, javadoc)
+        // maven-releases (served publicly via the maven-public group): the API jar
         create<MavenPublication>("release") {
             artifactId = rootProject.name
-            from(components["java"])
         }
     }
     repositories {
@@ -60,9 +55,21 @@ publishing {
     }
 }
 
+// Neither publication is attached to a software component, so only the single jar
+// and its pom are published - no sources, javadoc, or classified variants.
 afterEvaluate {
     publishing.publications.named<MavenPublication>("private") {
         artifact(tasks.named("libreforgeJar"))
+    }
+    // The public artifact is what other plugins compile against, so it must be the
+    // plain jar, not shadowJar: shadowJar drops META-INF (taking the .kotlin_module
+    // with it, which hides every top-level declaration from the Kotlin compiler) and
+    // relocates kotlin.* into com.willfp.eco.libs.kotlin, which rewrites @kotlin.Metadata
+    // and makes the whole API read as Java. eco publishes its API the same way.
+    publishing.publications.named<MavenPublication>("release") {
+        artifact(project(":eco-core:core-plugin").tasks.named<Jar>("jar")) {
+            classifier = ""
+        }
     }
 }
 
@@ -96,11 +103,9 @@ allprojects {
         compileOnly("com.willfp:eco:$ecoVersion")
         compileOnly("org.jetbrains:annotations:26.0.2")
         compileOnly("org.jetbrains.kotlin:kotlin-stdlib:2.3.0")
-        compileOnly("com.github.ben-manes.caffeine:caffeine:3.2.3")
     }
 
     java {
-        withSourcesJar()
         toolchain.languageVersion.set(JavaLanguageVersion.of(21))
     }
 

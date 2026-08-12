@@ -1,6 +1,6 @@
 package com.willfp.ecopets.pets
 
-import com.github.benmanes.caffeine.cache.Caffeine
+import com.willfp.eco.core.cache.EcoCache
 import com.willfp.eco.core.config.interfaces.Config
 import com.willfp.eco.core.data.keys.PersistentDataKey
 import com.willfp.eco.core.data.keys.PersistentDataKeyType
@@ -69,6 +69,18 @@ class Pet(
         plugin.namespacedKeyFactory.create("${id}_xp"), PersistentDataKeyType.DOUBLE, 0.0
     )
 
+    private val levelPlaceholders = config.getSubsections("level-placeholders")
+        .map { sub ->
+            LevelPlaceholder(
+                sub.getString("id")
+            ) {
+                evaluateExpression(
+                    sub.getString("value")
+                        .replace("%level%", it.toString())
+                )
+            }
+        }
+
     // Resolved and cloned at init time (before custom item registration) so that
     // subsequent makeSpawnEgg calls always start from the clean raw item and never
     // accidentally pick up the registered custom item's already-baked lore.
@@ -94,7 +106,7 @@ class Pet(
             val newLevel = level + offset
             if (isNumeral) newLevel.toNumeral() else newLevel.toString()
         }
-        return result
+        return levelPlaceholders.format(result, level)
     }
 
     fun makeSpawnEgg(level: Int = 1, xp: Double = 0.0): ItemStack? {
@@ -157,25 +169,13 @@ class Pet(
 
     private val activateConditions: ConditionList
 
-    private val levels = Caffeine.newBuilder().build<Int, PetLevel>()
+    private val levels = EcoCache.builder<Int, PetLevel>().build()
 
-    private val effectsDescription = Caffeine.newBuilder().build<Int, List<String>>()
+    private val effectsDescription = EcoCache.builder<Int, List<String>>().build()
 
-    private val rewardsDescription = Caffeine.newBuilder().build<Int, List<String>>()
+    private val rewardsDescription = EcoCache.builder<Int, List<String>>().build()
 
-    private val levelUpMessages = Caffeine.newBuilder().build<Int, List<String>>()
-
-    private val levelPlaceholders = config.getSubsections("level-placeholders")
-        .map { sub ->
-            LevelPlaceholder(
-                sub.getString("id")
-            ) {
-                evaluateExpression(
-                    sub.getString("value")
-                        .replace("%level%", it.toString())
-                )
-            }
-        }
+    private val levelUpMessages = EcoCache.builder<Int, List<String>>().build()
 
     internal val priceFactory = PriceFactoryPetLevel(this)
 
