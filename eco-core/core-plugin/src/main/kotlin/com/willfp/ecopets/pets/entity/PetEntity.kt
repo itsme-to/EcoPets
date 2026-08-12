@@ -1,18 +1,22 @@
 package com.willfp.ecopets.pets.entity
 
+import com.willfp.eco.core.items.Items
+import com.willfp.eco.core.recipe.parts.EmptyTestableItem
 import com.willfp.ecopets.pets.Pet
 import com.willfp.ecopets.plugin
 import org.bukkit.Location
+import org.bukkit.Material
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.ArmorStand
 import org.bukkit.entity.Entity
 import org.bukkit.entity.EntityType
-import org.bukkit.entity.ItemDisplay
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
-import org.bukkit.Material
-import com.willfp.eco.core.items.Items
-import com.willfp.eco.core.recipe.parts.EmptyTestableItem
+
+// Shared range matches Bukkit's SCALE attribute limits used by ArmorStand pets.
+internal const val DEFAULT_PET_SCALE = 1.0
+internal const val MIN_PET_SCALE = 0.0625
+internal const val MAX_PET_SCALE = 16.0
 
 abstract class PetEntity(
     val pet: Pet
@@ -54,8 +58,11 @@ private fun ArmorStand.applyScale(isSkull: Boolean) {
 
     val scale = plugin.configYml.getDouble("pet-entity.scale")
 
-    if (scale !in 0.0625..16.0) {
-        plugin.logger.warning("Invalid scale value '$scale' in config.yml. Must be between 0.0625 and 16.")
+    if (scale !in MIN_PET_SCALE..MAX_PET_SCALE) {
+        plugin.logger.warning(
+            "Invalid scale value '$scale' in config.yml. " +
+                "Must be between $MIN_PET_SCALE and $MAX_PET_SCALE."
+        )
         return
     }
 
@@ -107,25 +114,9 @@ private fun itemPetEntity(pet: Pet, itemLookup: String): PetEntity = object : Pe
     override fun spawn(location: Location): Entity {
         val item = lookupItem(itemLookup)
         return if (plugin.configYml.getBool("pet-entity.item-display.enabled")) {
-            spawnAsItemDisplay(location, item)
+            spawnPetItemDisplay(location, pet, item)
         } else {
             spawnAsArmorStand(location, item)
-        }
-    }
-
-    private fun spawnAsItemDisplay(location: Location, item: ItemStack): ItemDisplay {
-        return location.world!!.spawn(location, ItemDisplay::class.java) {
-            it.setItemStack(item)
-            it.isCustomNameVisible = true
-            it.customName = pet.name
-            it.teleportDuration = plugin.configYml.getInt("pet-entity.item-display.teleport-duration", 3)
-
-            val scale = plugin.configYml.getDouble("pet-entity.scale")
-            if (scale in 0.0625..16.0) {
-                val transform = it.transformation
-                transform.scale.set(scale, scale, scale)
-                it.transformation = transform
-            }
         }
     }
 
